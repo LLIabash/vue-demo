@@ -1,24 +1,21 @@
 <template>
     <div class="weather-visual">
-        <div class="sky-arc">
-            <div :class="['celestial-body', { 'rainy': isRainy, 'cloudy': isCloudy }]" :style="celestialBodyStyle">
-                <div v-if="isDaytime" class="sun"></div>
-                <div v-else class="moon"></div>
-            </div>
-        </div>
+        <!-- Солнце или луна на дуге -->
+        <div v-if="isDaytime" class="sun moving-sun"></div>
+        <div v-else class="moon moving-moon"></div>
         <div class="weather-conditions">
+            <!-- Существующие условия погоды -->
             <div v-if="isCloudy || isOvercast || isRainy || isSnowy" class="clouds">
                 <div v-for="i in 5" :key="i" class="cloud"></div>
             </div>
             <div v-if="isSnowy" class="snow">
                 <div v-for="i in 100" :key="i" class="snowflake"
-                    :style="`--left-position: ${Math.random() * 110}; --animation-delay: ${Math.random() * 3};`"></div>
+                    :style="`--left-position: ${Math.random() * 100}; --animation-delay: ${Math.random() * 3};`"></div>
             </div>
             <div v-if="isMisty" class="mist"></div>
             <div v-if="isRainy" class="rain">
                 <div v-for="i in 100" :key="i" class="raindrop"
-                    :style="`--left-position: ${Math.random() * 110}; --animation-delay: ${Math.random() * 3};`">
-                </div>
+                    :style="`--left-position: ${Math.random() * 110}; --animation-delay: ${Math.random() * 3};`"></div>
             </div>
         </div>
     </div>
@@ -31,7 +28,7 @@ const props = defineProps({
     weatherData: Object,
 })
 
-// Обновляем now каждую минуту
+// Текущее время
 const now = ref(new Date().getTime() / 1000);
 onMounted(() => {
     setInterval(() => {
@@ -39,14 +36,11 @@ onMounted(() => {
     }, 60000);
 });
 
+// Проверка времени суток (например, с 6:00 до 18:00)
 const isDaytime = computed(() => {
-    const sunrise = props.weatherData?.forecast?.forecastday[0]?.astro?.sunrise
-    const sunset = props.weatherData?.forecast?.forecastday[0]?.astro?.sunset
-    if (!sunrise || !sunset) return true
-    const sunriseTime = new Date(props.weatherData.location.localtime.split(' ')[0] + ' ' + sunrise).getTime() / 1000
-    const sunsetTime = new Date(props.weatherData.location.localtime.split(' ')[0] + ' ' + sunset).getTime() / 1000
-    return now.value > sunriseTime && now.value < sunsetTime
-})
+    const currentHour = new Date(now.value * 1000).getUTCHours();
+    return currentHour >= 6 && currentHour < 18;
+});
 
 const isRainy = computed(() => {
     const conditionText = props.weatherData?.current?.condition.text.toLowerCase();
@@ -57,33 +51,78 @@ const isSnowy = computed(() => {
     const conditionText = props.weatherData?.current?.condition.text.toLowerCase();
     return conditionText.includes('snow') || conditionText.includes('sleet');
 });
-const isCloudy = computed(() => props.weatherData?.current?.condition.text.toLowerCase().includes('cloud'))
-const isOvercast = computed(() => props.weatherData?.current?.condition.text.toLowerCase().includes('overcast'))
-const isMisty = computed(() => props.weatherData?.current?.condition.text.toLowerCase().includes('mist'))
+const isCloudy = computed(() => props.weatherData?.current?.condition.text.toLowerCase().includes('cloud'));
+const isOvercast = computed(() => props.weatherData?.current?.condition.text.toLowerCase().includes('overcast'));
+const isMisty = computed(() => props.weatherData?.current?.condition.text.toLowerCase().includes('mist'));
 
-
-const celestialBodyStyle = computed(() => {
-    const sunrise = props.weatherData?.forecast?.forecastday[0]?.astro?.sunrise
-    const sunset = props.weatherData?.forecast?.forecastday[0]?.astro?.sunset
-    if (!sunrise || !sunset) return { left: '50%', bottom: '0' }
-
-    const sunriseTime = new Date(props.weatherData.location.localtime.split(' ')[0] + ' ' + sunrise).getTime() / 1000
-    const sunsetTime = new Date(props.weatherData.location.localtime.split(' ')[0] + ' ' + sunset).getTime() / 1000
-    const dayDuration = sunsetTime - sunriseTime
-    const timeSinceSunrise = now.value - sunriseTime
-
-    let position = (timeSinceSunrise / dayDuration) * 100
-    position = Math.max(0, Math.min(position, 100))
-
-    const angle = (position / 100) * Math.PI
-    const x = 50 + Math.sin(angle) * 37.5
-    const y = Math.cos(angle) * 37.5
-
-    return `{ left: ${x}%, bottom: ${y}% }`
-})
 </script>
 
 <style scoped>
+.weather-visual {
+    position: relative;
+    width: 100%;
+    height: 300px;
+    overflow: hidden;
+    border-radius: 0.5rem;
+    background: linear-gradient(to bottom, #87CEEB, #E0F6FF);
+}
+
+.sun,
+.moon {
+    position: absolute;
+    top: 170px;
+    left: 50%;
+    transform: translate(-50%, -100%);
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+}
+
+/* Стили для солнца и луны */
+.sun {
+    background: radial-gradient(circle at center, #FFD700, #FFA500);
+    box-shadow: 0 0 20px rgba(255, 165, 0, 0.8);
+    animation: move-sun 20s linear infinite;
+    /* Длительность и тип анимации */
+}
+
+.moon {
+    background: radial-gradient(circle at center, #C0C0C0, #808080);
+    box-shadow: 0 0 20px rgba(128, 128, 128, 0.6);
+    animation: move-moon 20s linear infinite;
+    /* Длительность и тип анимации */
+}
+
+@keyframes move-sun {
+    0% {
+        transform: translate(-50%, -100%) translateY(0);
+    }
+
+    50% {
+        transform: translate(-50%, -100%) translateY(-100px);
+        /* Максимальная высота */
+    }
+
+    100% {
+        transform: translate(-50%, -100%) translateY(0);
+    }
+}
+
+@keyframes move-moon {
+    0% {
+        transform: translate(-50%, -100%) translateY(0);
+    }
+
+    50% {
+        transform: translate(-50%, -100%) translateY(-100px);
+        /* Максимальная высота */
+    }
+
+    100% {
+        transform: translate(-50%, -100%) translateY(0);
+    }
+}
+
 .weather-visual {
     position: relative;
     width: 100%;
@@ -102,26 +141,6 @@ const celestialBodyStyle = computed(() => {
     border-radius: 50%;
     border: 2px solid rgba(255, 255, 255, 0.3);
     border-bottom: none;
-}
-
-.celestial-body {
-    position: absolute;
-    transform: translate(-50%, 50%);
-    width: 2.5rem;
-    height: 2.5rem;
-    border-radius: 50%;
-    transition: left 0.5s ease, bottom 0.5s ease;
-    z-index: 10;
-}
-
-.sun {
-    background: radial-gradient(circle, #FFD700 60%, #FFA500);
-    box-shadow: 0 0 20px #FFD700;
-}
-
-.moon {
-    background: radial-gradient(circle, #F0F0F0 60%, #C0C0C0);
-    box-shadow: 0 0 20px #F0F0F0;
 }
 
 .weather-conditions {
@@ -290,7 +309,6 @@ const celestialBodyStyle = computed(() => {
     background: linear-gradient(to bottom, rgba(135, 206, 235, 0.8), rgba(135, 206, 235, 0.4));
     border-radius: 20% 20% 50% 50%;
     opacity: 0;
-    /* Начальная прозрачность */
     animation: fall 1.2s linear infinite;
     left: calc(var(--left-position) * 1%);
     animation-delay: calc(var(--animation-delay) * 0.5s);
@@ -300,18 +318,15 @@ const celestialBodyStyle = computed(() => {
     0% {
         transform: translateY(-20px);
         opacity: 0;
-        /* Начальная прозрачность */
     }
 
     20% {
         opacity: 0.6;
-        /* Появляется наполовину через 20% пути */
     }
 
     100% {
         transform: translateY(300px);
         opacity: 0;
-        /* Пропадает после достижения конца */
     }
 }
 
@@ -331,26 +346,6 @@ const celestialBodyStyle = computed(() => {
     animation-delay: -0.9s;
 }
 
-.celestial-body.rainy::before,
-.celestial-body.cloudy::before {
-    content: '';
-    position: absolute;
-    top: -25%;
-    left: -25%;
-    right: -25%;
-    bottom: -25%;
-    border-radius: 50%;
-    z-index: 20;
-}
-
-.celestial-body.rainy::before {
-    background: radial-gradient(circle, transparent 30%, rgba(135, 206, 235, 0.3) 70%);
-}
-
-.celestial-body.cloudy::before {
-    background: radial-gradient(circle, transparent 40%, rgba(255, 255, 255, 0.4) 70%);
-}
-
 @media (prefers-color-scheme: dark) {
     .weather-visual {
         background: linear-gradient(to bottom, #1a365d, #2d3748);
@@ -368,48 +363,40 @@ const celestialBodyStyle = computed(() => {
     .raindrop {
         background: #60A5FA;
     }
-
-    .celestial-body.cloudy::before {
-        background: radial-gradient(circle, transparent 40%, rgba(255, 255, 255, 0.2) 70%);
-    }
 }
 
 .snow {
     position: absolute;
     width: 100%;
     height: 100%;
-    z-index: 5;
+    z-index: 10;
 }
 
 .snowflake {
     position: absolute;
-    width: 5px;
-    height: 5px;
-    background: #FFFFFF;
+    background: white;
     border-radius: 50%;
     opacity: 0;
-    /* Начальная прозрачность */
-    animation: snowfall 3s linear infinite;
+    width: 5px;
+    height: 5px;
+    animation: fall-snow 3s linear infinite;
     left: calc(var(--left-position) * 1%);
-    animation-delay: calc(var(--animation-delay) * 2s);
+    animation-delay: calc(var(--animation-delay) * 1.5s);
 }
 
-@keyframes snowfall {
+@keyframes fall-snow {
     0% {
         transform: translateY(-10px);
         opacity: 0;
-        /* Начальная прозрачность */
     }
 
-    20% {
-        opacity: 0.5;
-        /* Появляется наполовину через 20% пути */
+    15% {
+        opacity: 0.8;
     }
 
     100% {
         transform: translateY(300px);
-        opacity: 0.8;
-        /* Окончательная прозрачность */
+        opacity: 0;
     }
 }
 

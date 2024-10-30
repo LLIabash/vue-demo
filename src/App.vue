@@ -66,30 +66,7 @@ const cities = [
   { name: 'Минск', id: 'Minsk' },
   { name: 'Киев', id: 'Kyiv' },
   { name: 'Нур-Султан', id: 'Nur-Sultan' },
-  { name: 'Алматы', id: 'Almaty' },
-  { name: 'Лондон', id: 'London' },
-  { name: 'Берлин', id: 'Berlin' },
-  { name: 'Париж', id: 'Paris' },
-  { name: 'Нью-Йорк', id: 'New York' },
-  { name: 'Лос-Анджелес', id: 'Los Angeles' },
-  { name: 'Токио', id: 'Tokyo' },
-  { name: 'Сеул', id: 'Seoul' },
-  { name: 'Пекин', id: 'Beijing' },
-  { name: 'Сидней', id: 'Sydney' },
-  { name: 'Рим', id: 'Rome' },
-  { name: 'Мадрид', id: 'Madrid' },
-  { name: 'Торонто', id: 'Toronto' },
-  { name: 'Чикаго', id: 'Chicago' },
-  { name: 'Сан-Паулу', id: 'Sao Paulo' },
-  { name: 'Бангкок', id: 'Bangkok' },
-  { name: 'Дубай', id: 'Dubai' },
-  { name: 'Мумбаи', id: 'Mumbai' },
-  { name: 'Шанхай', id: 'Shanghai' },
-  { name: 'Кейптаун', id: 'Cape Town' },
-  { name: 'Рио-де-Жанейро', id: 'Rio de Janeiro' },
-  { name: 'Гонконг', id: 'Hong Kong' },
-  { name: 'Сингапур', id: 'Singapore' },
-  { name: 'Мехико', id: 'Mexico City' }
+  { name: 'Алматы', id: 'Almaty' }
 ];
 
 const weatherData = ref(null)
