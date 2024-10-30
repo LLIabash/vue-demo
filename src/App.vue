@@ -1,19 +1,23 @@
 <template>
-  <div class="weather-app">
+  <div :class="['weather-app', theme]">
     <div class="content-container">
-      <h1 class="app-title">Прогноз погоды</h1>
+      <header class="app-header">
+        <h1 class="app-title">Прогноз погоды</h1>
+        <button @click="toggleTheme" class="theme-toggle"
+          :aria-label="theme === 'light' ? 'Switch to dark theme' : 'Switch to light theme'">
+          <SunIcon v-if="theme === 'dark'" class="theme-icon" />
+          <MoonIcon v-else class="theme-icon" />
+        </button>
+      </header>
+
       <div class="select-container">
-        <input v-model="searchQuery" @input="searchCities" placeholder="Поиск города" class="city-search" />
-        <select v-model="selectedCity" @change="handleCityChange" class="city-select">
-          <option v-for="city in filteredCities" :key="city.id" :value="city">
+        <input v-model="searchQuery" @input="searchCities" @change="handleCityChange" list="city-list"
+          placeholder="Поиск или выбор города" class="city-search" />
+        <datalist id="city-list">
+          <option v-for="city in filteredCities" :key="city.id" :value="city.name">
             {{ city.name }}
           </option>
-        </select>
-        <div class="select-arrow">
-          <svg class="arrow-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20">
-            <path d="M9.293 12.95l.707.707L15.657 8l-1.414-1.414L10 10.828 5.757 6.586 4.343 8z" />
-          </svg>
-        </div>
+        </datalist>
       </div>
 
       <div class="weather-grid">
@@ -39,7 +43,8 @@
 </template>
 
 <script setup>
-import { ref, onMounted, computed } from 'vue'
+import { ref, onMounted, computed, watch } from 'vue'
+import { SunIcon, MoonIcon } from 'lucide-vue-next'
 import WeeklyForecast from './components/WeeklyForecast.vue'
 import WeatherVisual from './components/WeatherVisual.vue'
 
@@ -67,11 +72,12 @@ const cities = [
   { name: 'Киев', id: 'Kyiv' },
   { name: 'Нур-Султан', id: 'Nur-Sultan' },
   { name: 'Алматы', id: 'Almaty' }
-];
+]
 
 const weatherData = ref(null)
 const selectedCity = ref(cities[0])
 const searchQuery = ref('')
+const theme = ref('light')
 
 const filteredCities = computed(() => {
   if (!searchQuery.value) return cities
@@ -93,7 +99,11 @@ const fetchWeatherData = async (cityName) => {
 }
 
 const handleCityChange = () => {
-  fetchWeatherData(selectedCity.value.id)
+  const selectedCityObj = cities.find(city => city.name === searchQuery.value)
+  if (selectedCityObj) {
+    selectedCity.value = selectedCityObj
+    fetchWeatherData(selectedCityObj.id)
+  }
 }
 
 const searchCities = () => {
@@ -101,19 +111,37 @@ const searchCities = () => {
   // Фильтрация городов происходит автоматически благодаря computed свойству
 }
 
+const toggleTheme = () => {
+  theme.value = theme.value === 'light' ? 'dark' : 'light'
+  document.body.className = theme.value
+}
+
 onMounted(() => {
   fetchWeatherData(selectedCity.value.id)
+  const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches
+  theme.value = prefersDark ? 'dark' : 'light'
+})
+
+watch(theme, (newTheme) => {
+  document.body.className = newTheme
 })
 </script>
 
 <style scoped>
 .weather-app {
   min-height: 100vh;
-  width: 100vw;
-  background: linear-gradient(to bottom right, #e0f2fe, #bae6fd);
+  width: 100%;
+  transition: all 0.3s ease;
+}
+
+.weather-app.light {
+  background: linear-gradient(135deg, #e0f2fe, #bae6fd);
   color: #1e293b;
-  display: flex;
-  flex-direction: column;
+}
+
+.weather-app.dark {
+  background: linear-gradient(135deg, #1e293b, #0f172a);
+  color: #f1f5f9;
 }
 
 .content-container {
@@ -126,11 +154,33 @@ onMounted(() => {
   flex-direction: column;
 }
 
+.app-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 2rem;
+}
+
 .app-title {
   font-size: 2.5rem;
   font-weight: bold;
-  margin-bottom: 1.5rem;
-  text-align: center;
+}
+
+.theme-toggle {
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 0.5rem;
+  border-radius: 50%;
+  transition: background-color 0.3s ease;
+}
+
+.theme-toggle:hover {
+  background-color: rgba(0, 0, 0, 0.1);
+}
+
+.dark .theme-toggle:hover {
+  background-color: rgba(255, 255, 255, 0.1);
 }
 
 .select-container {
@@ -141,38 +191,24 @@ onMounted(() => {
 .city-search {
   width: 100%;
   max-width: 300px;
+  border-radius: 0.5rem;
+  padding: 0.75rem 1rem;
+  font-size: 1rem;
+  transition: all 0.3s ease;
+}
+
+.light .city-search {
   background-color: white;
   border: 1px solid #e2e8f0;
-  border-radius: 0.5rem;
-  padding: 0.5rem 1rem;
-  font-size: 1rem;
-  margin-bottom: 0.5rem;
+  color: #1e293b;
 }
 
-.city-select {
-  width: 100%;
-  max-width: 300px;
-  background-color: white;
-  border: 1px solid #e2e8f0;
-  border-radius: 0.5rem;
-  padding: 0.5rem 2.5rem 0.5rem 1rem;
-  appearance: none;
-  font-size: 1rem;
+.dark .city-search {
+  background-color: #334155;
+  border: 1px solid #475569;
+  color: #f1f5f9;
 }
 
-.select-arrow {
-  position: absolute;
-  right: 1rem;
-  top: 50%;
-  transform: translateY(-50%);
-  pointer-events: none;
-}
-
-.arrow-icon {
-  width: 1rem;
-  height: 1rem;
-  fill: currentColor;
-}
 
 .weather-grid {
   display: grid;
@@ -182,10 +218,18 @@ onMounted(() => {
 }
 
 .weather-card {
-  background-color: white;
-  border-radius: 0.5rem;
+  border-radius: 1rem;
   box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
   padding: 1.5rem;
+  transition: all 0.3s ease;
+}
+
+.light .weather-card {
+  background-color: rgba(255, 255, 255, 0.8);
+}
+
+.dark .weather-card {
+  background-color: rgba(30, 41, 59, 0.8);
 }
 
 .card-title {
@@ -211,7 +255,7 @@ onMounted(() => {
 }
 
 .humidity {
-  color: #64748b;
+  opacity: 0.7;
 }
 
 .weather-visual-card {
@@ -220,31 +264,18 @@ onMounted(() => {
   align-items: center;
 }
 
+.theme-icon {
+  width: 1.5rem;
+  height: 1.5rem;
+}
+
+.dark .theme-icon {
+  color: white;
+}
+
 @media (max-width: 768px) {
   .weather-grid {
     grid-template-columns: 1fr;
-  }
-}
-
-@media (prefers-color-scheme: dark) {
-  .weather-app {
-    background: linear-gradient(to bottom right, #1e293b, #0f172a);
-    color: #f1f5f9;
-  }
-
-  .weather-card {
-    background-color: #1e293b;
-  }
-
-  .city-select,
-  .city-search {
-    background-color: #334155;
-    color: #f1f5f9;
-    border-color: #475569;
-  }
-
-  .humidity {
-    color: #94a3b8;
   }
 }
 </style>
