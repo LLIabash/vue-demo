@@ -1,10 +1,8 @@
 <template>
-    <div class="weather-visual">
-        <!-- Солнце или луна на дуге -->
+    <div :class="['weather-visual', { 'day': isDaytime, 'night': !isDaytime }]">
         <div v-if="isDaytime" class="sun moving-sun"></div>
         <div v-else class="moon moving-moon"></div>
         <div class="weather-conditions">
-            <!-- Существующие условия погоды -->
             <div v-if="isCloudy || isOvercast || isRainy || isSnowy" class="clouds">
                 <div v-for="i in 5" :key="i" class="cloud"></div>
             </div>
@@ -26,9 +24,9 @@ import { ref, computed, onMounted } from 'vue'
 
 const props = defineProps({
     weatherData: Object,
+    theme: String
 })
 
-// Текущее время
 const now = ref(new Date().getTime() / 1000);
 onMounted(() => {
     setInterval(() => {
@@ -36,12 +34,12 @@ onMounted(() => {
     }, 60000);
 });
 
-// Проверка времени суток (например, с 6:00 до 18:00)
 const isDaytime = computed(() => {
     const currentHour = new Date(now.value * 1000).getUTCHours();
     return currentHour >= 6 && currentHour < 18;
 });
 
+// Остальные вычисляемые свойства
 const isRainy = computed(() => {
     const conditionText = props.weatherData?.current?.condition.text.toLowerCase();
     return conditionText.includes('rain') || conditionText.includes('drizzle');
@@ -51,6 +49,7 @@ const isSnowy = computed(() => {
     const conditionText = props.weatherData?.current?.condition.text.toLowerCase();
     return conditionText.includes('snow') || conditionText.includes('sleet');
 });
+
 const isCloudy = computed(() => props.weatherData?.current?.condition.text.toLowerCase().includes('cloud'));
 const isOvercast = computed(() => props.weatherData?.current?.condition.text.toLowerCase().includes('overcast'));
 const isMisty = computed(() => props.weatherData?.current?.condition.text.toLowerCase().includes('mist'));
@@ -64,7 +63,17 @@ const isMisty = computed(() => props.weatherData?.current?.condition.text.toLowe
     height: 300px;
     overflow: hidden;
     border-radius: 0.5rem;
+    transition: background 0.3s ease;
+}
+
+.weather-visual.day {
     background: linear-gradient(to bottom, #87CEEB, #E0F6FF);
+    /* Голубое небо */
+}
+
+.weather-visual.night {
+    background: linear-gradient(to bottom, #1a365d, #2d3748);
+    /* Темное небо */
 }
 
 .sun,
@@ -83,14 +92,12 @@ const isMisty = computed(() => props.weatherData?.current?.condition.text.toLowe
     background: radial-gradient(circle at center, #FFD700, #FFA500);
     box-shadow: 0 0 20px rgba(255, 165, 0, 0.8);
     animation: move-sun 20s linear infinite;
-    /* Длительность и тип анимации */
 }
 
 .moon {
     background: radial-gradient(circle at center, #C0C0C0, #808080);
     box-shadow: 0 0 20px rgba(128, 128, 128, 0.6);
     animation: move-moon 20s linear infinite;
-    /* Длительность и тип анимации */
 }
 
 @keyframes move-sun {

@@ -32,11 +32,11 @@
           </div>
         </div>
         <div class="weather-card weather-visual-card">
-          <WeatherVisual :weatherData="weatherData" />
+          <WeatherVisual :weatherData="weatherData" :theme="theme" />
         </div>
       </div>
       <div class="weather-card weekly-forecast">
-        <WeeklyForecast :city="selectedCity" />
+        <WeeklyForecast :city="selectedCity" :theme="theme" />
       </div>
     </div>
   </div>
