@@ -415,10 +415,57 @@ const celestialBodyStyle = computed(() => {
 
 .mist {
     position: absolute;
-    width: 100%;
+    width: 130%;
     height: 100%;
-    background: rgba(200, 200, 200, 0.5);
+    background: radial-gradient(circle at 50% 50%, rgba(200, 200, 200, 0.35), transparent 70%);
+    border-radius: 50%;
     z-index: 6;
-    backdrop-filter: blur(3px);
+    backdrop-filter: blur(7px);
+    animation: mistFlow 8s ease-in-out infinite;
+    opacity: 0.5;
+}
+
+.mist::before,
+.mist::after {
+    content: '';
+    position: absolute;
+    width: 170%;
+    height: 170%;
+    background: radial-gradient(circle at 50% 50%, rgba(200, 200, 200, 0.3), transparent 80%);
+    border-radius: 50%;
+    opacity: 0.4;
+    backdrop-filter: blur(10px);
+    animation: mistFlow 12s ease-in-out infinite;
+}
+
+.mist::before {
+    top: -15%;
+    left: -10%;
+    animation-direction: alternate;
+}
+
+.mist::after {
+    top: 15%;
+    left: 10%;
+    animation-direction: alternate-reverse;
+}
+
+@keyframes mistFlow {
+    0% {
+        transform: translateY(0);
+        opacity: 0.4;
+    }
+
+    50% {
+        transform: translateY(-10px);
+        /* Поднимаем туман вверх */
+        opacity: 0.6;
+    }
+
+    100% {
+        transform: translateY(0);
+        /* Возвращаем туман обратно */
+        opacity: 0.4;
+    }
 }
 </style>
