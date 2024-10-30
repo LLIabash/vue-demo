@@ -7,15 +7,18 @@
             </div>
         </div>
         <div class="weather-conditions">
-            <div v-if="isCloudy || isOvercast || isRainy" class="clouds">
+            <div v-if="isCloudy || isOvercast || isRainy || isSnowy" class="clouds">
                 <div v-for="i in 5" :key="i" class="cloud"></div>
             </div>
             <div v-if="isSnowy" class="snow">
-                <div v-for="i in 100" :key="i" class="snowflake"></div>
+                <div v-for="i in 100" :key="i" class="snowflake"
+                    :style="`--left-position: ${Math.random() * 110}; --animation-delay: ${Math.random() * 3};`"></div>
             </div>
             <div v-if="isMisty" class="mist"></div>
             <div v-if="isRainy" class="rain">
-                <div v-for="i in 100" :key="i" class="raindrop" :style="`{ left: ${Math.random() * 100}% }`"></div>
+                <div v-for="i in 100" :key="i" class="raindrop"
+                    :style="`--left-position: ${Math.random() * 110}; --animation-delay: ${Math.random() * 3};`">
+                </div>
             </div>
         </div>
     </div>
@@ -45,10 +48,17 @@ const isDaytime = computed(() => {
     return now.value > sunriseTime && now.value < sunsetTime
 })
 
-const isRainy = computed(() => props.weatherData?.current?.condition.text.toLowerCase().includes('rain'))
+const isRainy = computed(() => {
+    const conditionText = props.weatherData?.current?.condition.text.toLowerCase();
+    return conditionText.includes('rain') || conditionText.includes('drizzle');
+});
+
+const isSnowy = computed(() => {
+    const conditionText = props.weatherData?.current?.condition.text.toLowerCase();
+    return conditionText.includes('snow') || conditionText.includes('sleet');
+});
 const isCloudy = computed(() => props.weatherData?.current?.condition.text.toLowerCase().includes('cloud'))
 const isOvercast = computed(() => props.weatherData?.current?.condition.text.toLowerCase().includes('overcast'))
-const isSnowy = computed(() => props.weatherData?.current?.condition.text.toLowerCase().includes('snow'))
 const isMisty = computed(() => props.weatherData?.current?.condition.text.toLowerCase().includes('mist'))
 
 
@@ -277,18 +287,31 @@ const celestialBodyStyle = computed(() => {
     position: absolute;
     width: 2px;
     height: 10px;
-    background: #87CEEB;
-    opacity: 0.7;
-    animation: fall 1s infinite linear;
+    background: linear-gradient(to bottom, rgba(135, 206, 235, 0.8), rgba(135, 206, 235, 0.4));
+    border-radius: 20% 20% 50% 50%;
+    opacity: 0;
+    /* Начальная прозрачность */
+    animation: fall 1.2s linear infinite;
+    left: calc(var(--left-position) * 1%);
+    animation-delay: calc(var(--animation-delay) * 0.5s);
 }
 
 @keyframes fall {
-    from {
+    0% {
         transform: translateY(-20px);
+        opacity: 0;
+        /* Начальная прозрачность */
     }
 
-    to {
+    20% {
+        opacity: 0.6;
+        /* Появляется наполовину через 20% пути */
+    }
+
+    100% {
         transform: translateY(300px);
+        opacity: 0;
+        /* Пропадает после достижения конца */
     }
 }
 
@@ -364,17 +387,29 @@ const celestialBodyStyle = computed(() => {
     height: 5px;
     background: #FFFFFF;
     border-radius: 50%;
-    opacity: 0.8;
-    animation: snowfall 3s infinite linear;
+    opacity: 0;
+    /* Начальная прозрачность */
+    animation: snowfall 3s linear infinite;
+    left: calc(var(--left-position) * 1%);
+    animation-delay: calc(var(--animation-delay) * 2s);
 }
 
 @keyframes snowfall {
-    from {
+    0% {
         transform: translateY(-10px);
+        opacity: 0;
+        /* Начальная прозрачность */
     }
 
-    to {
+    20% {
+        opacity: 0.5;
+        /* Появляется наполовину через 20% пути */
+    }
+
+    100% {
         transform: translateY(300px);
+        opacity: 0.8;
+        /* Окончательная прозрачность */
     }
 }
 
